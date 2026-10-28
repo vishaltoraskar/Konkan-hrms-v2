@@ -226,9 +226,35 @@ LEAVE\_TYPES ||--o{ LEAVE\_REQUESTS : "type of"
 
 \### Mapping a signed-in user to an employee
 
+The user logs in with Clerk and Clerk gives your server their email.
+
+The server looks up the employees table for that email.
+
+On first login, it saves Clerk’s user id into clerk\_user\_id, so next time it matches by id.
+
+No matching row → what should happen? (Access denied.)
+
+last\_working\_day has passed → what should happen? (Access denied, even though Clerk login worked.)
+
+
+
 \### Roles
 
+Employee: who is an employee? (Everyone with an active row.)
+
+HR Admin: how does the app know? (Hint: which column in employees?)
+
+Manager: the brief says don’t store it. How is it worked out instead? (Hint: page 5, reporting\_manager\_id.) Then: why is working it out better than storing it? Think about what happens when someone’s last direct report leaves.
+
+
+
 \### Row-level security
+
+Which 2 tables get RLS turned on? (The brief names them on page 15.)
+
+The rule: no access from the browser at all. Only your server code can read them, and it masks the values before sending them to the screen.
+
+One sentence: why does this protect Aadhaar even if someone finds your Supabase public key?
 
 
 
