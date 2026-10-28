@@ -234,11 +234,29 @@ Status badge: small rounded label using the status colours
 
 !\[Phone apply leave](docs/wireframes/p2-apply-leave-phone.png)
 
+
+
 \## 5. Empty, loading and error states
+
+| Screen | Empty state | Loading state | Error state |
+
+|---|---|---|---|
+
+| Dashboard | | | |
+
+| Approvals inbox | | | |
+
+| Reports | | | |
 
 \### Dashboard
 
+Dashboard, loading: grey placeholder boxes (skeletons) where the balance cards will appear
+
 \### Approvals inbox
 
+Approvals inbox, empty: “No pending requests 🎉 Your team is all caught up.”
+
 \### Reports
+
+Reports, error: “Couldn’t load the March summary. Try again.” plus a Retry button
 
