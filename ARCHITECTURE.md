@@ -126,9 +126,99 @@ Where are roles (Employee, Manager, HR) checked?
 
 \### Tables
 
+\- locations: id, name, city, state, weekly\_off\_days
+
+\- departments: id, name
+
+\- employees: location\_id, department\_id, reporting\_manager\_id, clerk\_user\_id, employee\_code, full\_name, email, mobile, dob, gender, date\_of\_joining, last\_working\_day, designation, is\_hr\_admin, status
+
+\- employee\_statutory: employee\_id, pan, aadhaar, uan
+
+\- employee\_bank: employee\_id, account\_number, ifsc, bank\_name
+
+\- holidays: location\_id, date, name, type (National / State / Optional)
+
+\- attendance: id, employee\_id, date, check\_in, check\_out, is\_wfh, status, is\_late
+
+\- regularisation\_requests: id, attendance\_id, requested\_in, requested\_out, reason, status, approver\_id
+
+\- leave\_types: id, code, name, annual\_quota, accrual\_method, carry\_forward\_max, half\_day\_allowed
+
+\- leave\_balances: employee\_id, leave\_type\_id, year, opening, accrued
+
+\- leave\_requests: id, employee\_id, leave\_type\_id, from\_date, to\_date, is\_half\_day, days, reason, status, approver\_id, approver\_comment, attachment\_url
+
+\- audit\_log: id, table\_name, record\_id, field, old\_value, new\_value, changed\_by, changed\_at
+
+
+
 \### Constraints
 
+| Table | Constraint | Rule | Why |
+
+|---|---|---|---|
+
+| employees | unique | employee\_code is unique | |
+
+| employees | unique | email is unique | |
+
+| employees | check | dob is at least 18 years before date\_of\_joining | |
+
+| employees | check | mobile matches ^\[6-9]\[0-9]{9}$ | |
+
+| employees | check | reporting\_manager\_id is not the employee's own id | |
+
+| employees | foreign key | location\_id → locations, department\_id → departments, reporting\_manager\_id → employees | |
+
+| employee\_statutory | check | pan matches ^\[A-Z]{5}\[0-9]{4}\[A-Z]$ | |
+
+| employee\_statutory | check | aadhaar is 12 digits, uan is 12 digits or empty | |
+
+| employee\_bank | check | ifsc matches ^\[A-Z]{4}0\[A-Z0-9]{6}$ | |
+
+| attendance | unique | (employee\_id, date) | |
+
+| holidays | unique | (location\_id, date) | |
+
+| leave\_balances | unique | (employee\_id, leave\_type\_id, year) | |
+
+| leave\_requests | check | to\_date is on or after from\_date | |
+
+| leave\_requests | check | status is one of Draft, Pending, Approved, Rejected, Cancelled | |
+
+| leave\_requests | check | approver\_id is not the same as employee\_id | |
+
+| all tables | no delete | employees are never deleted, only deactivated | |
+
+
+
 \### ER diagram
+
+```mermaid
+
+erDiagram
+
+LOCATIONS ||--o{ EMPLOYEES : "works at"
+
+DEPARTMENTS ||--o{ EMPLOYEES : "has"
+
+EMPLOYEES ||--o{ EMPLOYEES : "manages"
+
+EMPLOYEES ||--o| EMPLOYEE\_STATUTORY : "has"
+
+EMPLOYEES ||--o| EMPLOYEE\_BANK : "has"
+
+LOCATIONS ||--o{ HOLIDAYS : "has"
+
+EMPLOYEES ||--o{ ATTENDANCE : "marks"
+
+ATTENDANCE ||--o{ REGULARISATION\_REQUESTS : "corrected by"
+
+EMPLOYEES ||--o{ LEAVE\_REQUESTS : "applies"
+
+LEAVE\_TYPES ||--o{ LEAVE\_REQUESTS : "type of"
+
+```
 
 
 
