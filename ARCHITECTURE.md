@@ -260,25 +260,161 @@ One sentence: why does this protect Aadhaar even if someone finds your Supabase 
 
 \## 5. Business logic location
 
+| Rule | Where it lives | Why |
+
+|---|---|---|
+
+| Count working days (weekly offs + holidays per location) | | |
+
+| Day status (Present / Half Day / Absent / On Leave / Holiday / Weekly Off) | | |
+
+| Late mark (after 10:15 IST) and 3 Lates = 0.5 LOP | | |
+
+| Leave balance (opening + accrued − used − pending) | | |
+
+| Pro-rating CL/SL for mid-year joiners | | |
+
+| EL accrual (1.25 per completed month) | | |
+
+| PAN / Aadhaar / IFSC / mobile format | | |
+
+| One attendance row per employee per day | | |
+
+| Employee code generation (KCF0001) | | |
+
 
 
 \## 6. AI agent
 
 \### Model and library
 
+Model: the one you picked in RESEARCH.md (e.g. Gemini Flash), plus its free limits
+
+Library: Vercel AI SDK. Why? (Hint: tool calling, and switching models takes one line.)
+
+
+
 \### Tools
+
+| Tool | What it does | Inputs | Output | Who can use | Read/Write |
+
+|---|---|---|---|---|---|
+
+| get\_my\_leave\_balance | User's balance per leave type | | | | Read |
+
+| get\_holidays | Holidays for user's location in a month | | | | Read |
+
+| count\_working\_days | Leave days between two dates | | | | Read |
+
+| explain\_policy | Answers from stored policy text only | | | | Read |
+
+| draft\_leave\_request | Creates a draft, not submitted | | | | Write (confirmed) |
+
+| get\_team\_today | Team present/leave/absent today | | | | Read |
+
+| summarise\_pending\_approvals | Pending requests with clash warnings | | | | Read |
+
+| (your own tool) | | | | | |
+
+
 
 \### What the model can and cannot see
 
+Can see: the user’s name, role, location, today’s date in IST, and tool results (balances, day counts, holidays, policy text)
+
+Never sees: PAN, Aadhaar, bank details, database password, API keys, and other employees’ private data
+
+
+
 \### How write actions are confirmed
+
+The agent only creates a draft.
+
+The user sees a Confirm button.
+
+Clicking Confirm runs the normal apply-leave action, so all the usual checks run again.
+
+The agent has no tool to approve, reject or cancel. Explain why that matters.
 
 
 
 \## 7. Folder structure
 
+konkan-hrms-v2/
+
+├── app/
+
+│   ├── dashboard/
+
+│   ├── employees/
+
+│   ├── attendance/
+
+│   ├── leave/
+
+│   ├── approvals/
+
+│   ├── reports/
+
+│   ├── ask-hr/
+
+│   ├── settings/
+
+│   └── access-denied/
+
+├── lib/
+
+│   ├── auth/
+
+│   ├── rules/
+
+│   ├── db/
+
+│   ├── agent/
+
+│   ├── email/
+
+│   └── validation/
+
+├── supabase/
+
+│   ├── migrations/
+
+│   └── seed/
+
+├── tests/
+
+│   ├── employees/
+
+│   ├── attendance/
+
+│   ├── leave/
+
+│   └── agent/
+
+├── RESEARCH.md
+
+├── ARCHITECTURE.md
+
+├── DESIGN.md
+
+├── CLAUDE.md
+
+├── README.md
+
+└── .env.example
+
 
 
 \## 8. Dates and time zone (IST)
+
+Database: check-in and check-out are stored as timestamptz (timestamp with time zone), so the exact moment is never lost.
+
+The attendance date: the server works out the date in Asia/Kolkata, never from the server’s own clock and never from the user’s browser. Say why you don’t trust the browser. (Hint: a user could change their laptop’s time.)
+
+Showing times on screen: always formatted with the Asia/Kolkata time zone, e.g. 09:42 AM IST.
+
+The Late rule: “after 10:15 AM” is checked in IST, not UTC.
 
 
 
@@ -288,6 +424,14 @@ One sentence: why does this protect Aadhaar even if someone finds your Supabase 
 
 |---|---|---|
 
+Risk	Hint for “why it might break”	Hint for “how I will test it”
+
+Wrong leave-day count	Two locations with different weekly offs, plus location-wise holidays	Friday to Monday at Panaji = 2 days, at Verna = 3 days; a leave spanning a holiday
+
+Role check bypassed	Someone types another employee’s URL, or calls a server action directly	Log in as an employee and open another person’s profile URL; try approving your own leave
+
+Time zone bugs	Vercel runs on UTC, India is UTC+5:30	Check in near midnight; change your laptop’s time zone; a 10:20 AM check-in must be Late
+
 
 
 \## 10. Decision log
@@ -295,4 +439,6 @@ One sentence: why does this protect Aadhaar even if someone finds your Supabase 
 | Date | Change | Reason |
 
 |---|---|---|
+
+| 28-Oct-2026 | Removed "used" column from leave\_balances; added agent\_log, pii\_reveal\_log, policy\_text; added location\_id, department\_id, reporting\_manager\_id to employees and location\_id to holidays | |
 
